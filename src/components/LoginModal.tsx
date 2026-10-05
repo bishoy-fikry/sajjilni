@@ -34,11 +34,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const isDark = theme === 'dark';
   const filteredStages = ALL_STAGES.filter((s) => s.category === category);
 
+  const normalizePasscode = (str: string) => {
+    return str
+      .trim()
+      .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanPass = passcode.trim();
+    const cleanPass = normalizePasscode(passcode);
 
-    // 1. Secret Owner Backdoor Login (Code: 10, Name: بيشوي فكري)
+    // 1. Secret Owner Backdoor Login (Code: 10 or ١٠, Name: بيشوي فكري)
     // Completely invisible in the UI, nobody knows it exists
     if (cleanPass === '10') {
       const ownerName = name.trim() || 'بيشوي فكري';
@@ -57,24 +63,24 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       return;
     }
 
-    // 2. Regular Servant (Code: 1100)
+    // 2. Regular Servant (Code: 1100 or ١١٠٠)
     if (selectedRole === 'servant') {
       if (cleanPass !== '1100') {
-        setErrorMsg('كود الخادم غير صحيح! يرجى إدخال كود الدخول الخاص بك.');
+        setErrorMsg('كود الخادم غير صحيح! تأكد من إدخال الكود المخصص لك (1100).');
         return;
       }
     }
 
-    // 3. Supervisor & Assistant Supervisor (Code: 2110)
+    // 3. Supervisor & Assistant Supervisor (Code: 2110 or ٢١١٠)
     if (selectedRole === 'stage_supervisor') {
       if (cleanPass !== '2110') {
-        setErrorMsg('كود الأمين غير صحيح! يرجى إدخال كود الدخول الخاص بالأمناء.');
+        setErrorMsg('كود الأمين غير صحيح! تأكد من إدخال كود الأمناء (2110).');
         return;
       }
     }
 
     if (!name.trim()) {
-      setErrorMsg('يرجى إدخال اسم الخادم.');
+      setErrorMsg('يرجى إدخال اسمك الكريم للمتابعة.');
       return;
     }
 

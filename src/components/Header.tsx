@@ -49,6 +49,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleTheme,
   isOnline = true,
 }) => {
+  const [isStageDropdownOpen, setIsStageDropdownOpen] = React.useState(false);
   const isGeneralAdmin = currentServant?.role === 'general_admin';
   const isSupervisor = currentServant?.role === 'stage_supervisor';
   const canViewServants = isGeneralAdmin || isSupervisor;
@@ -85,8 +86,12 @@ export const Header: React.FC<HeaderProps> = ({
           {currentServant ? (
             <div className="flex items-center gap-2">
               <div className="relative group">
-                <div
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs sm:text-sm transition ${
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isGeneralAdmin) setIsStageDropdownOpen(!isStageDropdownOpen);
+                  }}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs sm:text-sm transition cursor-pointer ${
                     isDark
                       ? 'bg-white/5 hover:bg-white/10 border-white/10 text-rose-200'
                       : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
@@ -104,20 +109,27 @@ export const Header: React.FC<HeaderProps> = ({
                       مسؤول
                     </span>
                   )}
-                  {isGeneralAdmin && <ChevronDown className="w-4 h-4 text-slate-400" />}
-                </div>
+                  {isGeneralAdmin && <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isStageDropdownOpen ? 'rotate-180' : ''}`} />}
+                </button>
 
                 {/* General Admin Dropdown Switcher */}
-                {isGeneralAdmin && (
+                {isGeneralAdmin && isStageDropdownOpen && (
                   <div
-                    className={`absolute left-0 sm:right-0 mt-2 w-72 rounded-2xl shadow-2xl p-2 hidden group-hover:block max-h-96 overflow-y-auto z-50 border ${
+                    className={`absolute left-0 sm:right-0 mt-2 w-72 rounded-2xl shadow-2xl p-2 max-h-96 overflow-y-auto z-50 border ${
                       isDark
                         ? 'bg-slate-950/95 backdrop-blur-xl border-white/10 text-white'
                         : 'bg-white border-slate-200 text-slate-800'
                     }`}
                   >
-                    <div className="text-[11px] font-bold text-slate-400 px-3 py-1 border-b border-white/10 mb-1">
-                      تنقل سريع بين المراحل:
+                    <div className="text-[11px] font-bold text-slate-400 px-3 py-1 border-b border-white/10 mb-1 flex items-center justify-between">
+                      <span>تنقل سريع بين المراحل:</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsStageDropdownOpen(false)}
+                        className="text-slate-400 hover:text-white text-xs cursor-pointer"
+                      >
+                        ✕
+                      </button>
                     </div>
                     {CATEGORIES_CONFIG.map((cat) => (
                       <div key={cat.id} className="mb-2">
@@ -129,7 +141,10 @@ export const Header: React.FC<HeaderProps> = ({
                             <button
                               key={stg.id}
                               type="button"
-                              onClick={() => onSelectStage(stg)}
+                              onClick={() => {
+                                onSelectStage(stg);
+                                setIsStageDropdownOpen(false);
+                              }}
                               className={`w-full text-right px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between cursor-pointer ${
                                 activeStage.id === stg.id
                                   ? 'bg-rose-700 text-white font-bold'
