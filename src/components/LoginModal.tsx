@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { CurrentServant, ServantRole, ServiceCategory } from '../types';
+import { CurrentServant, ServiceCategory } from '../types';
 import { ALL_STAGES, CATEGORIES_CONFIG } from '../data/servicesData';
 import { BrandLogo } from './BrandLogo';
-import { UserCheck, Lock, Building, Phone, User, CheckCircle2, X, ShieldCheck, KeyRound } from 'lucide-react';
+import { UserCheck, Building, Phone, User, CheckCircle2, X, ShieldCheck, KeyRound, Eye, EyeOff } from 'lucide-react';
 
 interface LoginModalProps {
   currentSession: CurrentServant | null;
@@ -21,11 +21,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 }) => {
   const [name, setName] = useState(currentSession?.name || '');
   const [phone, setPhone] = useState(currentSession?.phone || '');
-  // Only 2 publicly visible roles: 'servant' or 'stage_supervisor'
   const [selectedRole, setSelectedRole] = useState<'servant' | 'stage_supervisor'>(
     currentSession?.role === 'stage_supervisor' ? 'stage_supervisor' : 'servant'
   );
   const [passcode, setPasscode] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [category, setCategory] = useState<ServiceCategory>(currentSession?.assignedCategory || 'sunday_school');
   const [stageId, setStageId] = useState(currentSession?.assignedStageId || 'ss_kg');
   const [churchName, setChurchName] = useState(currentSession?.churchName || '');
@@ -40,13 +40,16 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
   };
 
+  const cleanPass = normalizePasscode(passcode);
+  const isOwnerCode = cleanPass === '10';
+  const isServantValid = cleanPass === '1100';
+  const isSupervisorValid = cleanPass === '2110';
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanPass = normalizePasscode(passcode);
 
     // 1. Secret Owner Backdoor Login (Code: 10 or ١٠, Name: بيشوي فكري)
-    // Completely invisible in the UI, nobody knows it exists
-    if (cleanPass === '10') {
+    if (isOwnerCode) {
       const ownerName = name.trim() || 'بيشوي فكري';
       const ownerSession: CurrentServant = {
         id: currentSession?.id || `srv_owner_${Date.now()}`,
@@ -64,23 +67,19 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     }
 
     // 2. Regular Servant (Code: 1100 or ١١٠٠)
-    if (selectedRole === 'servant') {
-      if (cleanPass !== '1100') {
-        setErrorMsg('كود الخادم غير صحيح! تأكد من إدخال الكود المخصص لك (1100).');
-        return;
-      }
+    if (selectedRole === 'servant' && !isServantValid) {
+      setErrorMsg('كود الخادم غير صحيح! تأكد من كتابة: 1100');
+      return;
     }
 
     // 3. Supervisor & Assistant Supervisor (Code: 2110 or ٢١١٠)
-    if (selectedRole === 'stage_supervisor') {
-      if (cleanPass !== '2110') {
-        setErrorMsg('كود الأمين غير صحيح! تأكد من إدخال كود الأمناء (2110).');
-        return;
-      }
+    if (selectedRole === 'stage_supervisor' && !isSupervisorValid) {
+      setErrorMsg('كود الأمين غير صحيح! تأكد من كتابة: 2110');
+      return;
     }
 
     if (!name.trim()) {
-      setErrorMsg('يرجى إدخال اسمك الكريم للمتابعة.');
+      setErrorMsg('يرجى كتابة الاسم للمتابعة.');
       return;
     }
 
@@ -129,7 +128,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             تسجيل دخول الخدمة
           </h2>
           <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            سجل بياناتك وأدخل كود التحقق الخاص بك للمتابعة
+            أدخل كود التحقق الخاص بك للدخول إلى المنظومة
           </p>
         </div>
 
@@ -138,7 +137,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           {/* Name */}
           <div>
             <label className={`block text-xs font-bold mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-              الاسم بالكامل <span className="text-rose-500">*</span>
+              الاسم بالكامل
             </label>
             <div className="relative">
               <input
@@ -148,7 +147,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   setName(e.target.value);
                   setErrorMsg('');
                 }}
-                placeholder="أدخل اسمك الكريم"
+                placeholder="أدخل اسمك الكريم (أو كود 10 للمالك)"
                 className={`w-full pl-3 pr-10 py-2.5 rounded-xl text-sm focus:outline-hidden focus:border-rose-500 transition border ${
                   isDark
                     ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:bg-white/10'
@@ -156,49 +155,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 }`}
               />
               <User className="w-4 h-4 text-slate-400 absolute right-3.5 top-3" />
-            </div>
-          </div>
-
-          {/* Phone & Church/Service */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className={`block text-xs font-bold mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                رقم الهاتف
-              </label>
-              <div className="relative">
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="01223456789"
-                  className={`w-full pl-3 pr-10 py-2.5 rounded-xl text-sm focus:outline-hidden focus:border-rose-500 transition border ${
-                    isDark
-                      ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500'
-                      : 'bg-slate-50 border-slate-300 text-slate-800 placeholder:text-slate-400'
-                  }`}
-                />
-                <Phone className="w-4 h-4 text-slate-400 absolute right-3.5 top-3" />
-              </div>
-            </div>
-
-            <div>
-              <label className={`block text-xs font-bold mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                اسم الخدمة أو المقر (اختياري)
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={churchName}
-                  onChange={(e) => setChurchName(e.target.value)}
-                  placeholder="الخدمة أو المقر"
-                  className={`w-full pl-3 pr-10 py-2.5 rounded-xl text-sm focus:outline-hidden focus:border-rose-500 transition border ${
-                    isDark
-                      ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500'
-                      : 'bg-slate-50 border-slate-300 text-slate-800 placeholder:text-slate-400'
-                  }`}
-                />
-                <Building className="w-4 h-4 text-slate-400 absolute right-3.5 top-3" />
-              </div>
             </div>
           </div>
 
@@ -250,21 +206,32 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             </div>
           </div>
 
-          {/* Passcode Input Field with Secret Logic */}
+          {/* Passcode Input Field with Eye toggle & feedback */}
           <div>
-            <label className={`block text-xs font-bold mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-              كود التحقق الخاص بك <span className="text-rose-500">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className={`text-xs font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                كود التحقق الخاص بك <span className="text-rose-500">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-[11px] text-slate-400 hover:text-slate-200 flex items-center gap-1 cursor-pointer"
+              >
+                {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                <span>{showPassword ? 'إخفاء' : 'إظهار الكود'}</span>
+              </button>
+            </div>
+
             <div className="relative">
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 value={passcode}
                 onChange={(e) => {
                   setPasscode(e.target.value);
                   setErrorMsg('');
                 }}
-                placeholder="أدخل كود الدخول الخاص بك"
+                placeholder="أدخل كود التحقق"
                 className={`w-full pl-3 pr-10 py-2.5 rounded-xl text-sm font-mono focus:outline-hidden focus:border-rose-500 transition border ${
                   isDark
                     ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:bg-white/10'
@@ -274,53 +241,91 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <KeyRound className="w-4 h-4 text-rose-500 absolute right-3.5 top-3" />
             </div>
 
+            {/* Instant Code Feedback */}
+            {isOwnerCode && (
+              <div className="text-xs font-bold text-amber-400 mt-1.5 flex items-center gap-1 animate-in fade-in">
+                <span>👑 مرحباً بك يا أ/ بيشوي فكري (تحكم المالك الشامل)</span>
+              </div>
+            )}
+            {!isOwnerCode && isServantValid && selectedRole === 'servant' && (
+              <div className="text-xs font-bold text-emerald-400 mt-1.5 flex items-center gap-1 animate-in fade-in">
+                <span>✓ كود خادم معتمد (1100)</span>
+              </div>
+            )}
+            {!isOwnerCode && isSupervisorValid && selectedRole === 'stage_supervisor' && (
+              <div className="text-xs font-bold text-emerald-400 mt-1.5 flex items-center gap-1 animate-in fade-in">
+                <span>✓ كود أمين معتمد (2110)</span>
+              </div>
+            )}
+
+            {/* Helpful Public Hints */}
+            <div className={`text-[11px] mt-1.5 flex items-center justify-between ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+              <span>كود الخادم: <strong className="font-mono text-slate-400">1100</strong></span>
+              <span>كود الأمين: <strong className="font-mono text-slate-400">2110</strong></span>
+            </div>
+
             {errorMsg && (
-              <p className="text-rose-500 text-xs font-bold mt-1.5 animate-in fade-in">
+              <div className="p-2 rounded-xl bg-rose-950/80 border border-rose-600 text-rose-200 text-xs font-bold mt-2 animate-in fade-in">
                 {errorMsg}
-              </p>
+              </div>
             )}
           </div>
 
-          {/* Category & Stage selector */}
-          <div className="space-y-3 pt-1">
+          {/* Optional Phone & Church/Service */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
             <div>
               <label className={`block text-xs font-bold mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                القطاع
+                رقم الهاتف (اختياري)
               </label>
-              <div className="grid grid-cols-3 gap-2">
-                {CATEGORIES_CONFIG.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => {
-                      setCategory(cat.id);
-                      const firstStage = ALL_STAGES.find((s) => s.category === cat.id);
-                      if (firstStage) setStageId(firstStage.id);
-                    }}
-                    className={`p-2 rounded-xl border text-xs font-bold transition text-center cursor-pointer ${
-                      category === cat.id
-                        ? 'bg-rose-700 text-white border-rose-500 shadow-sm'
-                        : isDark
-                        ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
-                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
+              <div className="relative">
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="01223456789"
+                  className={`w-full pl-3 pr-10 py-2 rounded-xl text-xs focus:outline-hidden focus:border-rose-500 transition border ${
+                    isDark
+                      ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500'
+                      : 'bg-slate-50 border-slate-300 text-slate-800 placeholder:text-slate-400'
+                  }`}
+                />
+                <Phone className="w-3.5 h-3.5 text-slate-400 absolute right-3.5 top-2.5" />
               </div>
             </div>
 
             <div>
               <label className={`block text-xs font-bold mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                المرحلة المسندة إليك <span className="text-rose-500">*</span>
+                اسم الخدمة (اختياري)
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={churchName}
+                  onChange={(e) => setChurchName(e.target.value)}
+                  placeholder="الخدمة أو المقر"
+                  className={`w-full pl-3 pr-10 py-2 rounded-xl text-xs focus:outline-hidden focus:border-rose-500 transition border ${
+                    isDark
+                      ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500'
+                      : 'bg-slate-50 border-slate-300 text-slate-800 placeholder:text-slate-400'
+                  }`}
+                />
+                <Building className="w-3.5 h-3.5 text-slate-400 absolute right-3.5 top-2.5" />
+              </div>
+            </div>
+          </div>
+
+          {/* Category & Stage selector */}
+          <div className="space-y-2 pt-1 border-t border-white/10">
+            <div>
+              <label className={`block text-xs font-bold mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                المرحلة المسندة إليك
               </label>
               <select
                 value={stageId}
                 onChange={(e) => setStageId(e.target.value)}
                 className={`w-full px-3 py-2.5 rounded-xl text-sm font-medium focus:outline-hidden focus:border-rose-500 border ${
                   isDark
-                    ? 'bg-black/60 border-white/15 text-white'
+                    ? 'bg-slate-900 border-white/15 text-white'
                     : 'bg-slate-50 border-slate-300 text-slate-800'
                 }`}
               >
@@ -330,9 +335,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   </option>
                 ))}
               </select>
-              <p className={`text-[11px] mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                🔒 مسموح بالاطلاع على بيانات مرحلتك المسندة إليك فقط للحفاظ على الخصوصية.
-              </p>
             </div>
           </div>
 
@@ -340,7 +342,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           <div className="pt-2 flex items-center gap-3">
             <button
               type="submit"
-              className="flex-1 py-3 px-4 bg-gradient-to-r from-rose-700 to-rose-800 hover:from-rose-600 hover:to-rose-700 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer border border-rose-500/30"
+              className="flex-1 py-3 px-4 bg-gradient-to-r from-rose-700 to-rose-800 hover:from-rose-600 hover:to-rose-700 text-white font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2 cursor-pointer border border-rose-500/30 text-sm"
             >
               <CheckCircle2 className="w-5 h-5" />
               <span>دخول وبدء الخدمة</span>

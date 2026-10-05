@@ -315,11 +315,7 @@ export const ServantsList: React.FC<ServantsListProps> = ({
                       </button>
                       <button
                         type="button"
-                        onClick={() => {
-                          if (window.confirm(`هل أنت متأكد من حذف الخادم (${srv.name})؟`)) {
-                            onDeleteServant(srv.id);
-                          }
-                        }}
+                        onClick={() => onDeleteServant(srv.id)}
                         className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-white/5 rounded-lg transition"
                       >
                         <Trash2 className="w-4 h-4" />

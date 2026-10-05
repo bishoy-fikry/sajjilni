@@ -326,11 +326,7 @@ export const MembersList: React.FC<MembersListProps> = ({
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        if (window.confirm(`هل أنت متأكد من حذف المخدوم (${member.name})؟`)) {
-                          onDeleteMember(member.id);
-                        }
-                      }}
+                      onClick={() => onDeleteMember(member.id)}
                       className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-white/5 rounded-lg transition"
                       title="حذف"
                     >

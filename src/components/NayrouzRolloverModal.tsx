@@ -99,13 +99,6 @@ export const NayrouzRolloverModal: React.FC<NayrouzRolloverModalProps> = ({
 
     onSuccess(updatedDb);
     onClose();
-
-    alert(
-      `كل سنة وأنتم طيبين بمناسبة عيد النيروز المبارك! ✝️🎉\n\n` +
-        `• تم تصعيد (${upgradedMembersCount}) مخدوماً للمراحل الكنسية الجديدة.\n` +
-        `• تم تثبيت حركة توزيع (${reallocatedServantsCount}) خادماً وخادمة.\n` +
-        `• بدأت السنة الكنسية الجديدة: ${nextYearName}`
-    );
   };
 
   return (

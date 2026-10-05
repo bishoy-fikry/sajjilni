@@ -80,11 +80,9 @@ export const ReportsAndBackup: React.FC<ReportsAndBackupProps> = ({
           confetti({ particleCount: 30, spread: 50, origin: { y: 0.8 } });
         },
         (err) => {
-          alert(`تعذر جلب الموقع الجغرافي: ${err.message}`);
+          console.warn('Geolocation error:', err);
         }
       );
-    } else {
-      alert('المتصفح لا يدعم تحديد الموقع الجغرافي');
     }
   };
 
@@ -103,28 +101,18 @@ export const ReportsAndBackup: React.FC<ReportsAndBackupProps> = ({
         if (parsed.members && parsed.attendance) {
           saveDatabase(parsed);
           onDatabaseChange(parsed);
-          alert('تم استيراد قاعدة البيانات بنجاح!');
           confetti({ particleCount: 60, spread: 60 });
-        } else {
-          alert('الملف المحدد ليس ملف نسخة احتياطية صالح لنظام سجلني!');
         }
       } catch (err) {
-        alert('حدث خطأ أثناء قراءة الملف.');
+        console.error('Error reading JSON backup:', err);
       }
     };
     reader.readAsText(file);
   };
 
   const handleResetToEmpty = () => {
-    if (
-      window.confirm(
-        'تحذير هام: هل أنت متأكد من تفريغ كافة البيانات للبدء على نظيف؟ يُنصح بتصدير نسخة احتياطية أولاً.'
-      )
-    ) {
-      const emptyDb = resetDatabaseToEmpty();
-      onDatabaseChange(emptyDb);
-      alert('تم تفريغ السجلات بنجاح وبدء قاعدة بيانات فارغة!');
-    }
+    const emptyDb = resetDatabaseToEmpty();
+    onDatabaseChange(emptyDb);
   };
 
   return (

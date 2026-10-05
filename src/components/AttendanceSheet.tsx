@@ -169,12 +169,10 @@ export const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
   };
 
   const handleResetSession = () => {
-    if (window.confirm('هل أنت متأكد من مسح كشف الحضور لهذا اليوم للبدء من جديد؟')) {
-      const filtered = attendance.filter(
-        (a) => !(a.stageId === stage.id && a.date === selectedDate && a.targetType === 'member')
-      );
-      onSaveAttendance(filtered);
-    }
+    const filtered = attendance.filter(
+      (a) => !(a.stageId === stage.id && a.date === selectedDate && a.targetType === 'member')
+    );
+    onSaveAttendance(filtered);
   };
 
   const handleFastCodeSubmit = (e: React.FormEvent) => {
@@ -214,8 +212,6 @@ export const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
     if (enteredPin.trim() === churchConfig.dailyPinCode) {
       setPinVerified(true);
       confetti({ particleCount: 40, spread: 50, origin: { y: 0.8 } });
-    } else {
-      alert(`كود القاعة غير صحيح!`);
     }
   };
 
