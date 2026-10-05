@@ -1,0 +1,8 @@
+{
+  "name": "Segelny - Church Services & Attendance Management",
+  "description": "منظومة سجلني لإدارة خدمات الكنيسة والتربية الكنسية ومدرسة الشمامسة وتسجيل حضور وغياب المخدومين والخدام والصلاحيات.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
